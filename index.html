@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catch the Bird Game</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #111;
+    }
+    #bird {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      transition: left 0.05s linear;
+    }
+    .falling {
+      position: absolute;
+      top: 0;
+      width: 30px;
+      height: 30px;
+      background: yellow;
+      border-radius: 50%;
+    }
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameArea">
+    <div id="score">Score: 0</div>
+    <img id="bird" src="logo.png" alt="Bird">
+  </div>
+
+  <script>
+    const bird = document.getElementById("bird");
+    const gameArea = document.getElementById("gameArea");
+    const scoreDisplay = document.getElementById("score");
+    let score = 0;
+    let birdX = window.innerWidth / 2;
+
+    // Update posisi burung
+    function updateBird() {
+      bird.style.left = birdX + "px";
+    }
+    updateBird();
+
+    // Kontrol keyboard
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") birdX -= 30;
+      if (e.key === "ArrowRight") birdX += 30;
+      birdX = Math.max(0, Math.min(window.innerWidth - 60, birdX));
+      updateBird();
+    });
+
+    // Kontrol sentuh (HP)
+    gameArea.addEventListener("touchmove", (e) => {
+      const touch = e.touches[0];
+      birdX = touch.clientX - 30; // agar burung ada di tengah jari
+      birdX = Math.max(0, Math.min(window.innerWidth - 60, birdX));
+      updateBird();
+    });
+
+    // Spawn item jatuh
+    function spawnItem() {
+      const item = document.createElement("div");
+      item.classList.add("falling");
+      item.style.left = Math.random() * (window.innerWidth - 30) + "px";
+      item.style.top = "0px";
+      gameArea.appendChild(item);
+
+      let fallInterval = setInterval(() => {
+        let itemTop = parseInt(item.style.top);
+        itemTop += 5;
+        item.style.top = itemTop + "px";
+
+        const birdRect = bird.getBoundingClientRect();
+        const itemRect = item.getBoundingClientRect();
+
+        // Deteksi tabrakan
+        if (
+          itemRect.bottom >= birdRect.top &&
+          itemRect.right >= birdRect.left &&
+          itemRect.left <= birdRect.right &&
+          itemRect.top <= birdRect.bottom
+        ) {
+          score++;
+          scoreDisplay.textContent = "Score: " + score;
+          item.remove();
+          clearInterval(fallInterval);
+        }
+
+        // Hilangkan jika keluar layar
+        if (itemTop > window.innerHeight) {
+          item.remove();
+          clearInterval(fallInterval);
+        }
+      }, 30);
+    }
+
+    setInterval(spawnItem, 1200);
+  </script>
+</body>
+</html>
